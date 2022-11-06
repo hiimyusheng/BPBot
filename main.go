@@ -19,16 +19,12 @@ type Token struct {
 	Secret string `mapstructure:"channel_secret"`
 	Token  string `mapstructure:"channel_token"`
 }
-type User struct {
-	Id string `mapstructure:"user_id"`
-}
 
 var bot *linebot.Client
 
 func main() {
 
 	conf := readTokenConfig()
-	user := readUserConfig()
 	cmd := exec.Command("bash", "./init.sh")
 	err := cmd.Run()
 	if err != nil {
@@ -69,8 +65,8 @@ func main() {
 			}
 		}
 	})
-	router.POST("/api/pushmessage", pushMessageHandler(bot, user.Id))
-	router.GET("/api/querymessage", queryMessageHandler(client, user.Id))
+	router.POST("/api/pushmessage", pushMessageHandler(bot))
+	router.GET("/api/querymessage/:user_id", queryMessageHandler(client))
 	router.Run(":80")
 
 }
@@ -88,32 +84,20 @@ func readTokenConfig() *Token {
 	return Token
 }
 
-func readUserConfig() *User {
-	var User = new(User)
-	viper.SetConfigFile("./config/user.json")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-	if err := viper.Unmarshal(User); err != nil {
-		panic(fmt.Errorf("unmarshal conf fail: %s \n", err))
-	}
-	return User
-}
-
-func pushMessageHandler(bot *linebot.Client, user string) gin.HandlerFunc {
+func pushMessageHandler(bot *linebot.Client) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		var pushMessage struct {
+			User string `form:"user", json:"user"`
 			Type string `form:"type", json:"type"`
 			Text string `form:"text", json:"text"`
 		}
 		if err := c.BindJSON(&pushMessage); err != nil {
 			c.JSON(http.StatusBadRequest, http_response.NewErrorResp(1, "Invalid parameter format or missing necessary parameter."))
-			// return
+			return
 		}
 		switch pushMessage.Type {
 		case "text":
-			if _, err := bot.PushMessage(user, linebot.NewTextMessage(pushMessage.Text)).Do(); err != nil {
+			if _, err := bot.PushMessage(pushMessage.User, linebot.NewTextMessage(pushMessage.Text)).Do(); err != nil {
 				c.JSON(http.StatusBadRequest, http_response.NewErrorResp(1, "Push Failed"))
 			}
 		}
@@ -121,10 +105,11 @@ func pushMessageHandler(bot *linebot.Client, user string) gin.HandlerFunc {
 	return gin.HandlerFunc(fn)
 }
 
-func queryMessageHandler(client mongo.Client, user string) gin.HandlerFunc {
+func queryMessageHandler(client mongo.Client) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
+		id := c.Param("user_id")
 		var message []model.Message
-		message = mongodb.QueryMessage(user, client)
+		message = mongodb.QueryMessage(id, client)
 		c.JSON(http.StatusOK, message)
 	}
 	return gin.HandlerFunc(fn)
