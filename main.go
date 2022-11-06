@@ -19,14 +19,16 @@ type Token struct {
 	Secret string `mapstructure:"channel_secret"`
 	Token  string `mapstructure:"channel_token"`
 }
+type User struct {
+	Id string `mapstructure:"user_id"`
+}
 
 var bot *linebot.Client
 
-const user = "Ua42f1d02f01d55c94b8a45a665a4fbbd"
-
 func main() {
 
-	conf := readConfig()
+	conf := readTokenConfig()
+	user := readUserConfig()
 	cmd := exec.Command("bash", "./init.sh")
 	err := cmd.Run()
 	if err != nil {
@@ -67,13 +69,13 @@ func main() {
 			}
 		}
 	})
-	router.POST("/api/pushmessage", pushMessageHandler(bot, user))
-	router.GET("/api/querymessage", queryMessageHandler(client, user))
+	router.POST("/api/pushmessage", pushMessageHandler(bot, user.Id))
+	router.GET("/api/querymessage", queryMessageHandler(client, user.Id))
 	router.Run(":80")
 
 }
 
-func readConfig() *Token {
+func readTokenConfig() *Token {
 	var Token = new(Token)
 	viper.SetConfigFile("./config/token.json")
 	err := viper.ReadInConfig()
@@ -84,7 +86,19 @@ func readConfig() *Token {
 		panic(fmt.Errorf("unmarshal conf fail: %s \n", err))
 	}
 	return Token
+}
 
+func readUserConfig() *User {
+	var User = new(User)
+	viper.SetConfigFile("./config/user.json")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+	if err := viper.Unmarshal(User); err != nil {
+		panic(fmt.Errorf("unmarshal conf fail: %s \n", err))
+	}
+	return User
 }
 
 func pushMessageHandler(bot *linebot.Client, user string) gin.HandlerFunc {
