@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"line_bot/model"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -38,4 +39,23 @@ func RecieveMessage(message model.Message, client mongo.Client) {
 		panic(err)
 	}
 	fmt.Println("Insert Successfully")
+}
+
+func QueryMessage(user string, client mongo.Client) []model.Message {
+	var result []model.Message
+	filter := bson.D{{"id", user}}
+	coll := client.Database("line").Collection("message")
+	cursor, err := coll.Find(context.TODO(), filter)
+	if err != nil {
+		panic(err)
+	}
+	for cursor.Next(context.TODO()) {
+		var message model.Message
+		err := cursor.Decode(&message)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, message)
+	}
+	return result
 }

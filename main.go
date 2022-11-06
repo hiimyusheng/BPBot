@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
+	"line_bot/http_response"
 	"line_bot/model"
-	"line_bot/mongo"
+	mongodb "line_bot/mongo"
 	"log"
 	"net/http"
+	"os/exec"
 
 	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"github.com/spf13/viper"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Token struct {
@@ -19,10 +22,17 @@ type Token struct {
 
 var bot *linebot.Client
 
+const user = "Ua42f1d02f01d55c94b8a45a665a4fbbd"
+
 func main() {
 
 	conf := readConfig()
-	client, DBerr := mongo.ConnectDB()
+	cmd := exec.Command("bash", "./init.sh")
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("failed to start mongodb: %v", err)
+	}
+	client, DBerr := mongodb.ConnectDB()
 	if DBerr != nil {
 		log.Fatal(DBerr)
 	}
@@ -52,11 +62,13 @@ func main() {
 					}
 					newMessage.Id = event.Source.UserID
 					newMessage.Message = message.Text
-					mongo.RecieveMessage(newMessage, client)
+					mongodb.RecieveMessage(newMessage, client)
 				}
 			}
 		}
 	})
+	router.POST("/api/pushmessage", pushMessageHandler(bot, user))
+	router.GET("/api/querymessage", queryMessageHandler(client, user))
 	router.Run(":80")
 
 }
@@ -75,7 +87,31 @@ func readConfig() *Token {
 
 }
 
-func getMessage(c *gin.Context) {
-	fmt.Println("testttt")
-	c.JSON(http.StatusOK, gin.H{})
+func pushMessageHandler(bot *linebot.Client, user string) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var pushMessage struct {
+			Type string `form:"type", json:"type"`
+			Text string `form:"text", json:"text"`
+		}
+		if err := c.BindJSON(&pushMessage); err != nil {
+			c.JSON(http.StatusBadRequest, http_response.NewErrorResp(1, "Invalid parameter format or missing necessary parameter."))
+			// return
+		}
+		switch pushMessage.Type {
+		case "text":
+			if _, err := bot.PushMessage(user, linebot.NewTextMessage(pushMessage.Text)).Do(); err != nil {
+				c.JSON(http.StatusBadRequest, http_response.NewErrorResp(1, "Push Failed"))
+			}
+		}
+	}
+	return gin.HandlerFunc(fn)
+}
+
+func queryMessageHandler(client mongo.Client, user string) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		var message []model.Message
+		message = mongodb.QueryMessage(user, client)
+		c.JSON(http.StatusOK, message)
+	}
+	return gin.HandlerFunc(fn)
 }
