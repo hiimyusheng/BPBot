@@ -3,18 +3,12 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"line_bot/model"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
-
-type Message struct {
-	ID      primitive.ObjectID `bson:"_id,omitempty"`
-	Name    string             `bson:"name,omitempty"`
-	Message string             `bson:"message,omitempty"`
-}
 
 const uri = "mongodb://localhost:27017/?maxPoolSize=20&w=majority"
 
@@ -25,9 +19,9 @@ func ConnectDB() (mongo.Client, error) {
 		panic(err)
 	}
 	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
+		// if err = client.Disconnect(context.TODO()); err != nil {
+		// 	panic(err)
+		// }
 	}()
 	// Ping the primary
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
@@ -37,7 +31,11 @@ func ConnectDB() (mongo.Client, error) {
 	return *client, nil
 }
 
-func Query(client mongo.Client) {
-	database := client.Database("Line")
-	messageCollection := database.Collection("Message")
+func RecieveMessage(message model.Message, client mongo.Client) {
+	coll := client.Database("line").Collection("message")
+	_, err := coll.InsertOne(context.TODO(), message)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Insert Successfully")
 }
