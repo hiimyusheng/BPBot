@@ -12,7 +12,7 @@
 ## Setup
 
 1. set channel_secret and channel_token in `config/token.json`
-2. set user ud in `config/user.json`
+2. set user id in `config/user.json`
 
 ***
 
