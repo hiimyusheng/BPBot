@@ -109,4 +109,5 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+config/token.json
 # End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode,macos,windows
