@@ -15,14 +15,15 @@ func ReceiveWebhookEvent(googleAlert model.Gcp, bot *linebot.Client, db mongo.Cl
 
 	groups := mongodb.GetAllJoinedGroupSummary(db)
 	tm := time.Unix(googleAlert.Incident.Started, 0)
-	triggeredTime := tm.Format("2006-01-02 15:04:05")
-	message := fmt.Sprintf(`⚠️ %s Triggered! ⚠️: 
+	loc, _ := time.LoadLocation("Asia/Taipei")
+	triggeredTime := tm.In(loc).Format("2006-01-02 15:04:05") + " (GMT+8)"
+	message := fmt.Sprintf(`⚠️ *%s* alert triggered！ ⚠️: 
 
-	State: %s
-	Time: %s
-	Summary: %s
-	
-	Please check it out!`, googleAlert.Incident.PolicyName, googleAlert.Incident.State, triggeredTime, googleAlert.Incident.Summary)
+	State： *%s*
+	Time： *%s*
+	Summary： *%s*
+
+	Please check it out！`, googleAlert.Incident.PolicyName, googleAlert.Incident.State, triggeredTime, googleAlert.Incident.Summary)
 
 	for _, group := range groups {
 		if _, err := bot.PushMessage(group.GroupId, linebot.NewTextMessage(message)).Do(); err != nil {

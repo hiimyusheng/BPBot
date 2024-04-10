@@ -49,9 +49,9 @@ func HandleWebhookEvent(c *gin.Context) {
 	case "LineBotWebhook/2.0":
 		events, err := bot.ParseRequest(c.Request)
 		if err != nil {
-			if err == linebot.ErrInvalidSignature { // is webhook
+			if err == linebot.ErrInvalidSignature {
 				c.Writer.WriteHeader(500)
-			} else { // is error
+			} else {
 				c.Writer.WriteHeader(500)
 			}
 		}
@@ -61,8 +61,6 @@ func HandleWebhookEvent(c *gin.Context) {
 
 	case "Google-Alerts":
 		var newGoogleAlert model.Gcp
-		// body, _ := io.ReadAll(c.Request.Body)
-		// fmt.Println(string(body))
 		if err := c.BindJSON(&newGoogleAlert); err != nil {
 			log.Fatal(err)
 		}
