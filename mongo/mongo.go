@@ -6,6 +6,7 @@ import (
 	"line_bot/model"
 	"log"
 
+	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -93,6 +94,23 @@ func InsertGroup(group model.Group, client mongo.Client) {
 	fmt.Println("Insert Group Successfully")
 }
 
+func InsertAlert(alert model.Gcp, client mongo.Client) {
+	coll := client.Database("gcp").Collection("alert")
+	_, err := coll.InsertOne(context.TODO(), alert)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Insert Alert Successfully")
+}
+
+func InsertEvent(event linebot.Event, client mongo.Client) {
+	coll := client.Database("line").Collection("event")
+	_, err := coll.InsertOne(context.TODO(), event)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Insert Successfully")
+}
 func GetAllJoinedGroupSummary(client mongo.Client) []model.Group {
 	var result []model.Group
 	coll := client.Database("line").Collection("group")
