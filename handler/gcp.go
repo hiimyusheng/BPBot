@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"line_bot/model"
 	mongodb "line_bot/mongo"
+	"line_bot/utililty"
 	"log"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 func (g Gcp) HandleEvent(googleAlert model.Gcp, bot *linebot.Client) {
 	db, DBerr := mongodb.ConnectDB()
 	if DBerr != nil {
+		utililty.Logger(3, DBerr.Error())
 		log.Fatal(DBerr)
 	}
 	mongodb.InsertAlert(googleAlert, db)
@@ -31,6 +33,7 @@ func (g Gcp) HandleEvent(googleAlert model.Gcp, bot *linebot.Client) {
 
 	for _, group := range groups {
 		if _, err := bot.PushMessage(group.GroupId, linebot.NewTextMessage(message)).Do(); err != nil {
+			utililty.Logger(3, err.Error())
 			fmt.Println(err)
 		}
 	}

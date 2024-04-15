@@ -2,6 +2,7 @@ package handler
 
 import (
 	"line_bot/model"
+	"line_bot/utililty"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -23,8 +24,10 @@ func ReceiveWebhookEvent(c *gin.Context, bot *linebot.Client) {
 		events, err := bot.ParseRequest(c.Request)
 		if err != nil {
 			if err == linebot.ErrInvalidSignature {
+				utililty.Logger(3, err.Error())
 				c.Writer.WriteHeader(500)
 			} else {
+				utililty.Logger(3, err.Error())
 				c.Writer.WriteHeader(500)
 			}
 		}
@@ -36,6 +39,7 @@ func ReceiveWebhookEvent(c *gin.Context, bot *linebot.Client) {
 		var newGoogleAlert model.Gcp
 		var handler Gcp
 		if err := c.BindJSON(&newGoogleAlert); err != nil {
+			utililty.Logger(3, err.Error())
 			log.Fatal(err)
 		}
 		handler.HandleEvent(newGoogleAlert, bot)

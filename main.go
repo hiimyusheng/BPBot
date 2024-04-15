@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"line_bot/handler"
+	"line_bot/utililty"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -37,9 +38,9 @@ func HandleWebhookEvent(c *gin.Context) {
 
 	bot, err := linebot.New(conf.Secret, conf.Token)
 	if err != nil {
+		utililty.Logger(3, err.Error())
 		log.Fatal(err)
 	}
-
 	handler.ReceiveWebhookEvent(c, bot)
 
 	c.JSON(200, gin.H{})

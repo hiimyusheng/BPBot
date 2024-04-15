@@ -5,6 +5,7 @@ import (
 	"line_bot/http_response"
 	"line_bot/model"
 	mongodb "line_bot/mongo"
+	"line_bot/utililty"
 	"log"
 	"net/http"
 
@@ -16,6 +17,7 @@ import (
 func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
 	db, DBerr := mongodb.ConnectDB()
 	if DBerr != nil {
+		utililty.Logger(3, DBerr.Error())
 		log.Fatal(DBerr)
 	}
 	for _, event := range events {
@@ -27,6 +29,7 @@ func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
 			case *linebot.TextMessage:
 				newMessage.MessageType = "text"
 				if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.Text)).Do(); err != nil {
+					utililty.Logger(3, err.Error())
 					log.Print(err)
 				}
 				newMessage.UserId = event.Source.UserID
@@ -40,6 +43,7 @@ func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
 						group.GroupName = summary.GroupName
 						mongodb.InsertGroup(group, db)
 					} else {
+						utililty.Logger(3, err.Error())
 						log.Print(err)
 						fmt.Println(err)
 					}
