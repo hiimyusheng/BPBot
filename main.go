@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"line_bot/handler"
+	mongodb "line_bot/mongo"
 	"line_bot/utililty"
 	"log"
 
@@ -41,7 +42,13 @@ func HandleWebhookEvent(c *gin.Context) {
 		utililty.Logger(3, err.Error())
 		log.Fatal(err)
 	}
-	handler.ReceiveWebhookEvent(c, bot)
+
+	db, DBerr := mongodb.ConnectDB()
+	if DBerr != nil {
+		utililty.Logger(3, DBerr.Error())
+		log.Fatal(DBerr)
+	}
+	handler.ReceiveWebhookEvent(c, bot, db)
 
 	c.JSON(200, gin.H{})
 }

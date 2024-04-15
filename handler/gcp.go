@@ -5,21 +5,21 @@ import (
 	"line_bot/model"
 	mongodb "line_bot/mongo"
 	"line_bot/utililty"
-	"log"
 	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (g Gcp) HandleEvent(googleAlert model.Gcp, bot *linebot.Client) {
-	db, DBerr := mongodb.ConnectDB()
-	if DBerr != nil {
-		utililty.Logger(3, DBerr.Error())
-		log.Fatal(DBerr)
-	}
+func (g Gcp) HandleEvent(googleAlert model.Gcp, bot *linebot.Client, db mongo.Client) {
+
 	mongodb.InsertAlert(googleAlert, db)
 
-	groups := mongodb.GetAllJoinedGroupSummary(db)
+	groups, err := mongodb.GetAllJoinedGroupSummary(db)
+	if err != nil {
+		utililty.Logger(3, err.Error())
+		return
+	}
 	tm := time.Unix(googleAlert.Incident.Started, 0)
 	loc, _ := time.LoadLocation("Asia/Taipei")
 	triggeredTime := tm.In(loc).Format("2006-01-02 15:04:05") + " (GMT+8)"

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Line struct {
@@ -15,7 +16,7 @@ type Line struct {
 type Gcp struct {
 }
 
-func ReceiveWebhookEvent(c *gin.Context, bot *linebot.Client) {
+func ReceiveWebhookEvent(c *gin.Context, bot *linebot.Client, db mongo.Client) {
 
 	userAgent := c.Request.Header.Get("User-Agent")
 	switch userAgent {
@@ -31,7 +32,7 @@ func ReceiveWebhookEvent(c *gin.Context, bot *linebot.Client) {
 				c.Writer.WriteHeader(500)
 			}
 		}
-		handler.HandleEvent(events, bot)
+		handler.HandleEvent(events, bot, db)
 		// wip 回傳方式
 		// wip 處理line訊息的方式
 
@@ -42,7 +43,7 @@ func ReceiveWebhookEvent(c *gin.Context, bot *linebot.Client) {
 			utililty.Logger(3, err.Error())
 			log.Fatal(err)
 		}
-		handler.HandleEvent(newGoogleAlert, bot)
+		handler.HandleEvent(newGoogleAlert, bot, db)
 
 	}
 

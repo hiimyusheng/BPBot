@@ -27,7 +27,7 @@ func Logger(level int, message string) {
 	log.Level = levelString[level]
 	log.Message = message
 
-	coll := db.Database("system").Collection("log")
+	coll := db.Database("application").Collection("log")
 	_, err := coll.InsertOne(context.TODO(), log)
 	if err != nil {
 		panic(err)

@@ -1,25 +1,22 @@
 package handler
 
 import (
-	"fmt"
+	"line_bot/handler/command"
 	"line_bot/http_response"
 	"line_bot/model"
 	mongodb "line_bot/mongo"
 	"line_bot/utililty"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
-	db, DBerr := mongodb.ConnectDB()
-	if DBerr != nil {
-		utililty.Logger(3, DBerr.Error())
-		log.Fatal(DBerr)
-	}
+func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client, db mongo.Client) {
+
 	for _, event := range events {
 		mongodb.InsertEvent(*event, db)
 		switch event.Type {
@@ -27,26 +24,13 @@ func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
 			var newMessage model.Message
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
-				newMessage.MessageType = "text"
-				if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message.Text)).Do(); err != nil {
-					utililty.Logger(3, err.Error())
-					log.Print(err)
-				}
-				newMessage.UserId = event.Source.UserID
-				newMessage.Message = message.Text
-				if event.Source.Type == "group" {
-					newMessage.SourceType = "group"
-					newMessage.Id = string(event.Source.GroupID)
-					if summary, err := bot.GetGroupSummary(event.Source.GroupID).Do(); err == nil {
-						var group model.Group
-						group.GroupId = summary.GroupID
-						group.GroupName = summary.GroupName
-						mongodb.InsertGroup(group, db)
-					} else {
+				if b := isCommand(message.Text); b && event.Source.Type == "group" {
+					replyMessage := handleCommand(event, bot, db)
+					if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do(); err != nil {
 						utililty.Logger(3, err.Error())
 						log.Print(err)
-						fmt.Println(err)
 					}
+					return
 				}
 				if event.Source.Type == "room" {
 					newMessage.SourceType = "room"
@@ -61,8 +45,34 @@ func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
 				mongodb.RecieveMessage(newMessage, db)
 			}
 		default:
-			break
 		}
+	}
+}
+
+func isCommand(text string) bool {
+	if m, _ := regexp.MatchString("^/[a-zA-Z0-9 ]+$", text); m {
+		return true
+	}
+	return false
+}
+
+func handleCommand(event *linebot.Event, bot *linebot.Client, db mongo.Client) string {
+	r := regexp.MustCompile(`^(\/[^ ]+)(?:\s+([^ ]+))?`)
+	match := r.FindStringSubmatch(event.Message.(*linebot.TextMessage).Text)
+	if match == nil {
+		utililty.Logger(3, "Nil match")
+		return ""
+	}
+	switch match[1] {
+	case "/add":
+		if match[2] == "" {
+			utililty.Logger(3, "Missing project id")
+		}
+		message := command.Add(match[2], event, bot, db)
+		return message
+	default:
+		utililty.Logger(3, "Unrecognized command")
+		return "無法辨認的指令"
 	}
 }
 
@@ -91,7 +101,11 @@ func QueryMessageHandler(db mongo.Client) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		id := c.Param("user_id")
 		var message []model.Message
-		message = mongodb.QueryMessage(id, db)
+		message, err := mongodb.QueryMessage(id, db)
+		if err != nil {
+			utililty.Logger(3, err.Error())
+			return
+		}
 		c.JSON(http.StatusOK, message)
 	}
 	return gin.HandlerFunc(fn)
@@ -112,7 +126,11 @@ func GetUserInfoHandler(bot *linebot.Client) gin.HandlerFunc {
 
 func GetAllJoinedGroupSummary(db mongo.Client) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
-		groups := mongodb.GetAllJoinedGroupSummary(db)
+		groups, err := mongodb.GetAllJoinedGroupSummary(db)
+		if err != nil {
+			utililty.Logger(3, err.Error())
+			return
+		}
 		c.JSON(http.StatusOK, groups)
 	}
 	return gin.HandlerFunc(fn)
