@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"line_bot/handler"
-	"line_bot/model"
-	mongodb "line_bot/mongo"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -36,37 +34,13 @@ func main() {
 
 func HandleWebhookEvent(c *gin.Context) {
 	conf := readTokenConfig()
-	db, DBerr := mongodb.ConnectDB()
-	if DBerr != nil {
-		log.Fatal(DBerr)
-	}
+
 	bot, err := linebot.New(conf.Secret, conf.Token)
 	if err != nil {
 		log.Fatal(err)
 	}
-	userAgent := c.Request.Header.Get("User-Agent")
-	switch userAgent {
-	case "LineBotWebhook/2.0":
-		events, err := bot.ParseRequest(c.Request)
-		if err != nil {
-			if err == linebot.ErrInvalidSignature {
-				c.Writer.WriteHeader(500)
-			} else {
-				c.Writer.WriteHeader(500)
-			}
-		}
-		handler.ReceiveMessageHandler(events, bot, db)
-		// wip 回傳方式
-		// wip 處理line訊息的方式
 
-	case "Google-Alerts":
-		var newGoogleAlert model.Gcp
-		if err := c.BindJSON(&newGoogleAlert); err != nil {
-			log.Fatal(err)
-		}
-		handler.ReceiveWebhookEvent(newGoogleAlert, bot, db)
-
-	}
+	handler.ReceiveWebhookEvent(c, bot)
 
 	c.JSON(200, gin.H{})
 }

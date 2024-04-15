@@ -13,7 +13,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ReceiveMessageHandler(events []*linebot.Event, bot *linebot.Client, db mongo.Client) {
+func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client) {
+	db, DBerr := mongodb.ConnectDB()
+	if DBerr != nil {
+		log.Fatal(DBerr)
+	}
 	for _, event := range events {
 		mongodb.InsertEvent(*event, db)
 		switch event.Type {

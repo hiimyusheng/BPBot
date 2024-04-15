@@ -4,20 +4,24 @@ import (
 	"fmt"
 	"line_bot/model"
 	mongodb "line_bot/mongo"
+	"log"
 	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ReceiveWebhookEvent(googleAlert model.Gcp, bot *linebot.Client, db mongo.Client) {
+func (g Gcp) HandleEvent(googleAlert model.Gcp, bot *linebot.Client) {
+	db, DBerr := mongodb.ConnectDB()
+	if DBerr != nil {
+		log.Fatal(DBerr)
+	}
 	mongodb.InsertAlert(googleAlert, db)
 
 	groups := mongodb.GetAllJoinedGroupSummary(db)
 	tm := time.Unix(googleAlert.Incident.Started, 0)
 	loc, _ := time.LoadLocation("Asia/Taipei")
 	triggeredTime := tm.In(loc).Format("2006-01-02 15:04:05") + " (GMT+8)"
-	message := fmt.Sprintf(`⚠️ *%s* alert triggered！ ⚠️: 
+	message := fmt.Sprintf(`⚠️ *%s* alert triggered！ ⚠️:
 
 	State： *%s*
 	Time： *%s*
