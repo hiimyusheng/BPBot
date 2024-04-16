@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"line_bot/handler/command"
-	"line_bot/http_response"
-	"line_bot/model"
-	mongodb "line_bot/mongo"
-	"line_bot/utililty"
+	"bpbot/handler/command"
+	"bpbot/http_response"
+	"bpbot/model"
+	mongodb "bpbot/mongo"
+	"bpbot/utililty"
 	"log"
 	"net/http"
 	"regexp"

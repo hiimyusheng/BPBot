@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bpbot/handler"
+	mongodb "bpbot/mongo"
+	"bpbot/utililty"
 	"fmt"
-	"line_bot/handler"
-	mongodb "line_bot/mongo"
-	"line_bot/utililty"
 	"log"
 
 	"github.com/gin-gonic/gin"

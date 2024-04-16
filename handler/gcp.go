@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"bpbot/model"
+	mongodb "bpbot/mongo"
+	"bpbot/utililty"
 	"fmt"
-	"line_bot/model"
-	mongodb "line_bot/mongo"
-	"line_bot/utililty"
 	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"

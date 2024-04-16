@@ -1,4 +1,4 @@
-module line_bot
+module bpbot
 
 go 1.21
 

@@ -1,9 +1,9 @@
 package mongo
 
 import (
+	"bpbot/model"
 	"context"
 	"fmt"
-	"line_bot/model"
 	"log"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"

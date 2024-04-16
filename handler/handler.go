@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"line_bot/model"
-	"line_bot/utililty"
+	"bpbot/model"
+	"bpbot/utililty"
 	"log"
 
 	"github.com/gin-gonic/gin"
