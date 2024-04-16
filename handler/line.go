@@ -6,6 +6,7 @@ import (
 	"bpbot/model"
 	mongodb "bpbot/mongo"
 	"bpbot/utililty"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -50,7 +51,7 @@ func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client, db mongo
 }
 
 func isCommand(text string) bool {
-	if m, _ := regexp.MatchString("^/[a-zA-Z0-9 ]+$", text); m {
+	if m, _ := regexp.MatchString(`^(\/[^ ]+)(?:\s+([^ ]+))?`, text); m {
 		return true
 	}
 	return false
@@ -63,6 +64,7 @@ func handleCommand(event *linebot.Event, bot *linebot.Client, db mongo.Client) s
 		utililty.Logger(3, "Nil match")
 		return ""
 	}
+	fmt.Println(match)
 	switch match[1] {
 	case "/add":
 		if match[2] == "" {

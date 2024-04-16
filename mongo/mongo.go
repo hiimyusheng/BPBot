@@ -168,3 +168,22 @@ func GetAllJoinedGroupSummary(client mongo.Client) ([]model.Group, error) {
 	}
 	return result, nil
 }
+
+func GetRegisteredGroup(alert model.Gcp, client mongo.Client) ([]model.Group, error) {
+	var result []model.Group
+	coll := client.Database("line").Collection("group")
+	filter := bson.D{{"projectid", alert.Incident.ProjectId}}
+	cursor, err := coll.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(context.TODO()) {
+		var group model.Group
+		err := cursor.Decode(&group)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, group)
+	}
+	return result, nil
+}
