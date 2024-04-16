@@ -1,4 +1,4 @@
-# BPbot
+# BPBot
 
 ***
 
