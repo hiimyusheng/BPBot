@@ -23,23 +23,35 @@ func (l Line) HandleEvent(events []*linebot.Event, bot *linebot.Client, db mongo
 		switch event.Type {
 		case linebot.EventTypeMessage:
 			var newMessage model.Message
+			var replyMessage string
 			switch message := event.Message.(type) {
 			case *linebot.TextMessage:
 				if b := isCommand(message.Text); b && event.Source.Type == "group" {
-					replyMessage := handleCommand(event, bot, db)
+					if isAuthed := checkAuth(event, db); !isAuthed {
+						replyMessage = "您沒有權限使用此指令！"
+					} else {
+						replyMessage = handleCommand(event, bot, db)
+					}
 					if _, err := bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyMessage)).Do(); err != nil {
 						utililty.Logger(3, err.Error())
 						log.Print(err)
 					}
-					return
+				}
+				newMessage.Message = message.Text
+				if event.Source.Type == "group" {
+					newMessage.SourceType = "group"
+					newMessage.Id = string(event.Source.GroupID)
+					newMessage.UserId = string(event.Source.UserID)
 				}
 				if event.Source.Type == "room" {
 					newMessage.SourceType = "room"
 					newMessage.Id = string(event.Source.RoomID)
+					newMessage.UserId = string(event.Source.UserID)
 				}
 				if event.Source.Type == "user" {
 					newMessage.SourceType = "user"
 					newMessage.Id = string(event.Source.UserID)
+					newMessage.UserId = string(event.Source.UserID)
 				}
 				newMessage.ReplyToken = event.ReplyToken
 				newMessage.Time = event.Timestamp
@@ -76,6 +88,16 @@ func handleCommand(event *linebot.Event, bot *linebot.Client, db mongo.Client) s
 		utililty.Logger(3, "Unrecognized command")
 		return "無法辨認的指令"
 	}
+}
+
+func checkAuth(event *linebot.Event, db mongo.Client) bool {
+	result, err := mongodb.GetAuthedUsers(event.Source.UserID, db)
+	if err != nil {
+		utililty.Logger(3, err.Error())
+		return false
+	}
+	fmt.Println("result is", result)
+	return result != nil
 }
 
 func PushMessageHandler(bot *linebot.Client) gin.HandlerFunc {

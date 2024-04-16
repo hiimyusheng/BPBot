@@ -34,6 +34,61 @@ func ConnectDB() (mongo.Client, error) {
 	return *client, nil
 }
 
+func GetAuthedUsers(userid string, client mongo.Client) ([]model.Admin, error) {
+	var result []model.Admin
+	coll := client.Database("line").Collection("admin")
+	filter := bson.D{{"userid", userid}}
+	cursor, err := coll.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	for cursor.Next(context.TODO()) {
+		var admin model.Admin
+		err := cursor.Decode(&admin)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, admin)
+	}
+	return result, nil
+}
+
+func UpdateAdminList(admin model.Admin, client mongo.Client) error {
+	for _, a := range admin.UserId {
+		coll := client.Database("line").Collection("admin")
+		filter := bson.D{{"userid", a}}
+		cursor, err := coll.Find(context.TODO(), filter)
+		if err != nil {
+			return err
+		}
+		isEmpty := !cursor.Next(context.TODO())
+		if isEmpty {
+			_, err := coll.InsertOne(context.TODO(), a)
+			if err != nil {
+				fmt.Println("Insert Admin Error")
+				return err
+			}
+		}
+		for cursor.Next(context.TODO()) {
+			var document bson.M
+			err := cursor.Decode(&document)
+			if err != nil {
+				log.Fatal(err)
+				return err
+			}
+			if document["groupid"] == a {
+				continue
+			}
+			_, insertErr := coll.InsertOne(context.TODO(), a)
+			if insertErr != nil {
+				return insertErr
+			}
+		}
+		fmt.Println("Insert Group Successfully")
+	}
+	return nil
+}
+
 func RecieveMessage(message model.Message, client mongo.Client) error {
 	coll := client.Database("line").Collection("message")
 	_, err := coll.InsertOne(context.TODO(), message)
@@ -73,7 +128,7 @@ func InsertProject(group model.Group, client mongo.Client) error {
 	if isEmpty {
 		_, err := coll.InsertOne(context.TODO(), group)
 		if err != nil {
-			fmt.Println("Cursor is empty, no documents found")
+			fmt.Println("Insert Group Error")
 			return err
 		}
 	}
@@ -108,7 +163,7 @@ func InsertGroup(group model.Group, client mongo.Client) error {
 	if isEmpty {
 		_, err := coll.InsertOne(context.TODO(), group)
 		if err != nil {
-			fmt.Println("Cursor is empty, no documents found")
+			fmt.Println("Insert Group Error")
 			return err
 		}
 	}
