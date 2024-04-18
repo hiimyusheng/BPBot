@@ -1,10 +1,10 @@
 package mongo
 
 import (
-	"bpbot/model"
 	"context"
 	"fmt"
 	"log"
+	"nmbot/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.mongodb.org/mongo-driver/bson"
@@ -193,6 +193,15 @@ func InsertAlert(alert model.Gcp, client mongo.Client) error {
 		return err
 	}
 	fmt.Println("Insert Alert Successfully")
+	return nil
+}
+
+func InsertGcpEvent(event model.GcpEvent, client mongo.Client) error {
+	coll := client.Database("gcp").Collection("event")
+	_, err := coll.InsertOne(context.TODO(), event)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

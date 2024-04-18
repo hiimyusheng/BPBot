@@ -10,3 +10,6 @@ type Gcp struct {
 		Started    int64  `json:"started_at"`
 	} `json:"incident"`
 }
+type GcpEvent struct {
+	Event string
+}

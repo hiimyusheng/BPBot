@@ -1,4 +1,4 @@
-module bpbot
+module nmbot
 
 go 1.21
 

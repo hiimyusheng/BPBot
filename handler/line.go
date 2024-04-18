@@ -1,14 +1,14 @@
 package handler
 
 import (
-	"bpbot/handler/command"
-	"bpbot/http_response"
-	"bpbot/model"
-	mongodb "bpbot/mongo"
-	"bpbot/utililty"
 	"fmt"
 	"log"
 	"net/http"
+	"nmbot/handler/command"
+	"nmbot/http_response"
+	"nmbot/model"
+	mongodb "nmbot/mongo"
+	"nmbot/utililty"
 	"regexp"
 
 	"github.com/gin-gonic/gin"

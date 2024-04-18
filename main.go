@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bpbot/handler"
-	mongodb "bpbot/mongo"
-	"bpbot/utililty"
 	"fmt"
 	"log"
+	"nmbot/handler"
+	mongodb "nmbot/mongo"
+	"nmbot/utililty"
 
 	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v7/linebot"

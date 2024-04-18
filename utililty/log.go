@@ -1,10 +1,10 @@
 package utililty
 
 import (
-	mongodb "bpbot/mongo"
 	"context"
 	"fmt"
 	"log"
+	mongodb "nmbot/mongo"
 )
 
 type Log struct {

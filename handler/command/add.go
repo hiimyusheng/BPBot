@@ -1,9 +1,9 @@
 package command
 
 import (
-	"bpbot/model"
-	mongodb "bpbot/mongo"
-	"bpbot/utililty"
+	"nmbot/model"
+	mongodb "nmbot/mongo"
+	"nmbot/utililty"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.mongodb.org/mongo-driver/mongo"
