@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"io"
 	"log"
 	"nmbot/model"
-	mongodb "nmbot/mongo"
 	"nmbot/utililty"
 
 	"github.com/gin-gonic/gin"
