@@ -1,10 +1,11 @@
 package handler
 
 import (
-	"bpbot/model"
-	mongodb "bpbot/mongo"
-	"bpbot/utililty"
+	"io"
 	"log"
+	"nmbot/model"
+	mongodb "nmbot/mongo"
+	"nmbot/utililty"
 
 	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
