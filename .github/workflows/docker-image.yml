@@ -17,6 +17,6 @@ jobs:
     - name: Build the Docker image
       with:
         line_token: ${{ secrets.LINE_TOKEN }}
-      run: |
+      run: 
         printf '%s\n' "$line_token" > /config/token.json
         docker compose build --no-cache
