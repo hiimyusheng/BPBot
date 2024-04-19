@@ -15,9 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      uses: hiimyusheng/NightMoodBot@main
-      with:
+    - with:
         line_token: ${{ secrets.LINE_TOKEN }}
-      run: 
-        printf '%s\n' "$line_token" > /config/token.json
-        docker compose build --no-cache
+    - run: printf '%s\n' "$line_token" > /config/token.json
+    - run: docker compose build --no-cache
