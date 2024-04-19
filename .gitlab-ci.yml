@@ -1,0 +1,61 @@
+stages:
+  - build
+  - deploy
+
+
+### MODA OD Test CICD ###
+build-message-bot-setting:
+  stage: build
+  variables:
+    BACKEND_ENV: 'testing'
+  tags:
+    - message-bot
+  script:
+    - if [ -z "$PROJECT_ROOT" ]; then echo "Need to set PROJECT_ROOT" && exit 1; fi
+    - CID=`git rev-parse --short=6 HEAD`
+    - echo $CID
+    - rsync -rqh ./ $PROJECT_ROOT
+      --exclude '.git'
+      --exclude '.gitlab-ci.yml'
+      --exclude '.gitignore'
+      --exclude 'data/*'
+      --exclude 'docker-conf/backstage-ap/log/*'
+      --exclude 'docker-conf/frontstage-ap/log/*'
+      --delete
+    # Set .env and config files
+    #- printf '%s\n' "APP_ENV=${BACKEND_ENV}" 'SECRET_KEY=ndcod' 'FAKE_LOGIN=true' > $PROJECT_ROOT/backend/.env 
+    - printf '%s\n' "$line_token" > $PROJECT_ROOT/config/token.json
+    # - printf '%s\n' "$testing_google_client_secret_config" > $PROJECT_ROOT/backend/config/${BACKEND_ENV}/google_client_secret.json
+    # - printf '%s\n' "$testing_mailer_config" > $PROJECT_ROOT/backend/config/${BACKEND_ENV}/mailer.json
+    # - printf '%s\n' "$testing_system_config" > $PROJECT_ROOT/backend/config/${BACKEND_ENV}/system.json
+    # - printf '%s\n' "$testing_view_log_config" > $PROJECT_ROOT/backend/config/${BACKEND_ENV}/view_log.json
+    # - printf '%s\n' "$SETTING_PHINX" > $PROJECT_ROOT/backend/phinx.yml
+  only:
+    - main
+
+build-message-bot-image:
+  stage: build
+  tags:
+    - message-bot
+  script:
+    - if [ -z "$PROJECT_ROOT" ]; then echo "Need to set PROJECT_ROOT" && exit 1; fi
+    # Build image
+    - cd $PROJECT_ROOT
+    - docker system prune -f
+    - docker compose -f docker-compose.yml stop mongodb go-env
+    - docker compose -f docker-compose.yml rm -f mongodb go-env
+    - docker compose build mongodb go-env
+  only:
+    - main
+
+deploy-message-bot-image:
+  stage: deploy
+  tags:
+    - message-bot
+  script:
+    - if [ -z "$PROJECT_ROOT" ]; then echo "Need to set PROJECT_ROOT" && exit 1; fi
+    # up container
+    - cd $PROJECT_ROOT
+    - docker compose -f docker-compose.yml up -d mongodb go-env
+  only:
+    - main
