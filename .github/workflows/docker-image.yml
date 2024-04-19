@@ -8,9 +8,11 @@ jobs:
 
    build:
 
-     runs-on: selfed-host
+     runs-on: self-hosted
 
      steps:
      - uses: actions/checkout@v3
      - name: Build the Docker image
-       run: sudo docker compose build --no-cache
+       run: |
+         pwd
+         sudo docker compose build --no-cache
