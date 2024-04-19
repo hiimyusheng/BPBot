@@ -7,9 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
-
+    name: build Docker image
     runs-on: ubuntu-latest
 
     steps:
@@ -17,5 +16,7 @@ jobs:
     - name: Build the Docker image
     - with:
         line_token: ${{ secrets.LINE_TOKEN }}
-    - run: printf '%s\n' "$line_token" > /config/token.json
-    - run: docker compose build --no-cache
+    - name: set tocken and build image
+      run: |
+        printf '%s\n' "$line_token" > /config/token.json
+        docker compose build --no-cache
