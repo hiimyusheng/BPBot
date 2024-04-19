@@ -6,17 +6,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
-jobs:
-  build:
-    name: build Docker image
-    runs-on: ubuntu-latest
 
+jobs:
+  check-user:
+    runs-on: self-hosted
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-    - with:
-        line_token: ${{ secrets.LINE_TOKEN }}
-    - name: set tocken and build image
-      run: |
-        printf '%s\n' "$line_token" > /config/token.json
-        docker compose build --no-cache
+      - name: Check which user the runner is using
+        run: |
+          echo "Running as user: $(whoami)"
