@@ -17,7 +17,7 @@ jobs:
       run: echo "CURRENT_DIR=$(pwd)" >> $GITHUB_ENV
     - name: Build the Docker image
       run: |
-        printf '%s\n' "${{ secrect.LINE_TOKEN }}" > ${{ env.CURRENT_DIR }}/config/token.json
+        printf '%s\n' "${{ secrets.LINE_TOKEN }}" > ${{ env.CURRENT_DIR }}/config/token.json
         sudo docker compose build --no-cache
   deploy:
     runs-on: self-hosted
