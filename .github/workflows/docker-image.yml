@@ -15,6 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
+      uses: hiimyusheng/NightMoodBot@main
       with:
         line_token: ${{ secrets.LINE_TOKEN }}
       run: 
