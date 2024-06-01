@@ -3,7 +3,6 @@ services:
   mongodb:
     restart: always
     container_name: mongodb
-    platform: linux/amd64
     image: mongo:4.4
     ports:
       - 27017:27017
@@ -13,6 +12,5 @@ services:
     build: .
     restart: always
     container_name: go
-    platform: linux/amd64
     ports: 
       - 80:80
