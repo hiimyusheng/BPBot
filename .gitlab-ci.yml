@@ -33,29 +33,18 @@ build-message-bot-setting:
   only:
     - main
 
-build-message-bot-image:
-  stage: build
-  tags:
-    - message-bot
-  script:
-    - if [ -z "$PROJECT_ROOT" ]; then echo "Need to set PROJECT_ROOT" && exit 1; fi
-    # Build image
-    - cd $PROJECT_ROOT
-    - docker system prune -f
-    - docker compose -f docker-compose.yml stop mongodb go-env
-    - docker compose -f docker-compose.yml rm -f mongodb go-env
-    - docker compose build mongodb go-env
-  only:
-    - main
+# build-message-bot-image:
+#   stage: build
+#   tags:
+#     - message-bot
+#   script:
+#     - if [ -z "$PROJECT_ROOT" ]; then echo "Need to set PROJECT_ROOT" && exit 1; fi
+#     # Build image
+#     - cd $PROJECT_ROOT
+#     - docker system prune -f
+#     - docker compose -f docker-compose.yml stop mongodb go-env
+#     - docker compose -f docker-compose.yml rm -f mongodb go-env
+#     - docker compose build mongodb go-env
+#   only:
+#     - main
 
-deploy-message-bot-image:
-  stage: deploy
-  tags:
-    - message-bot
-  script:
-    - if [ -z "$PROJECT_ROOT" ]; then echo "Need to set PROJECT_ROOT" && exit 1; fi
-    # up container
-    - cd $PROJECT_ROOT
-    - docker compose -f docker-compose.yml up -d mongodb go-env
-  only:
-    - main
